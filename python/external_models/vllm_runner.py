@@ -31,7 +31,11 @@ class VLLMTacticGenerator(Generator, Transformer):
             top_p=args["top_p"],
             frequency_penalty=0,
             presence_penalty=0,
+            use_beam_search=args.get("use_beam_search", False),
         )
+        
+        self.skip_exp = args.get("skip_exp", False)
+        self.max_output = args.get("max_output", -1)
 
         self.tokenizer = AutoTokenizer.from_pretrained(
             self.name, trust_remote_code=True
@@ -55,27 +59,35 @@ class VLLMTacticGenerator(Generator, Transformer):
         for output in vllm_outputs[0].outputs:  # bsz=1 for now
             out = output.text.split("<|im_end|>")[0]
             result.append(
-                (post_process_output(self.name, out), np.exp(output.cumulative_logprob))
+                (
+                    post_process_output(self.name, out), 
+                    output.cumulative_logprob if self.skip_exp else np.exp(output.cumulative_logprob)
+                )
             )
 
         result = choices_dedup(result)
+        if self.max_output > 0:
+            result = sample_outputs_by_logprob(result, self.max_output)
         return result
 
 
 if __name__ == "__main__":
     generation_kwargs = {
-        "model": "internlm/internlm2-math-plus-1_8b",
+        "model": "bytedance-research/BFS-Prover",
         "tensor_parallel_size": 2,
-        "temperature": 0.6,
-        "max_tokens": 1024,
-        "top_p": 0.9,
+        "temperature": 1.1,
+        "max_tokens": 64,
+        "top_p": 1,
         "length_penalty": 0,
-        "n": 32,
+        "n": 8,
         "do_sample": True,
         "output_scores": True,
         "output_logits": False,
         "return_dict_in_generate": True,
         "device": "auto",
+        "skip_exp": True,
+        "max_output": 4,
+        # use_beam_search=True,
     }
     model = VLLMTacticGenerator(**generation_kwargs)
     print(model.generate("n : ℕ\n⊢ gcd n n = n"))

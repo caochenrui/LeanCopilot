@@ -1,11 +1,11 @@
-import torch
+# import torch
 import numpy as np
-from typing import List, Tuple
+from typing import List, Tuple, Any
 from abc import ABC, abstractmethod
 
 
-def get_cuda_if_available():
-    return torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# def get_cuda_if_available():
+#     return torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 def pre_process_input(model_name, input):
@@ -28,6 +28,10 @@ def pre_process_input(model_name, input):
             + input
             + "\nNow you should suggest one line tactic in lean code:"
         )
+    elif model_name == "bytedance-research/BFS-Prover":
+        prompt = (
+            input + ":::"
+        )
     else:
         raise NotImplementedError(f"External model '{model_name}' not supported")
     return prompt
@@ -45,6 +49,8 @@ def post_process_output(model_name, output):
         result = output.split("lean")[-1].split("```")[0].split("\n")[1]
     elif "gemini" in model_name or "claude" in model_name:
         result = output.split("lean")[-1].split("```")[0].split("\n")[1]
+    elif model_name == "bytedance-research/BFS-Prover":
+        result = output.split(":::")[-1]
     else:
         raise NotImplementedError(f"External model '{model_name}' not supported")
     return result
@@ -59,6 +65,21 @@ def choices_dedup(output_list: List[tuple[str, float]]) -> List[tuple[str, float
     return sorted_data
 
 
+def sample_outputs_by_logprob(
+    result: List[Tuple[Any, float]],
+    max_output: int,
+) -> List[Tuple[Any, float]]:
+    if not result:
+        return []
+    logprobs = np.array([x[1] for x in result])
+    probs = np.exp(logprobs - np.max(logprobs))  # 数值稳定性处理
+    probs /= probs.sum()
+    size = min(max_output, len(result))
+    selected_indices = np.random.choice(len(result), size=size, p=probs, replace=False)
+    selected_outputs = [result[i] for i in selected_indices]
+    return selected_outputs
+
+
 class Generator(ABC):
     @abstractmethod
     def generate(self, input: str, target_prefix: str = "") -> List[Tuple[str, float]]:
@@ -71,13 +92,13 @@ class Encoder(ABC):
         pass
 
 
-class Transformer:
-    def cuda(self) -> None:
-        self.model.cuda()
+# class Transformer:
+#     def cuda(self) -> None:
+#         self.model.cuda()
 
-    def cpu(self) -> None:
-        self.model.cpu()
+#     def cpu(self) -> None:
+#         self.model.cpu()
 
-    @property
-    def device(self) -> torch.device:
-        return self.model.device
+#     @property
+#     def device(self) -> torch.device:
+#         return self.model.device
