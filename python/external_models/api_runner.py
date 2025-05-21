@@ -13,7 +13,7 @@ class RequestSender:
         self.api_keys = api_keys
         self.timeout = timeout
 
-    def send_request_once_openai(self, prompt: str, base_url: int, api_key: str, sampling_params: dict):
+    def send_request_once_openai(self, prompt: str, base_url: str, api_key: str, sampling_params: dict):
         print(f"Sending request to url {base_url}...", flush=True)
         client = openai.Client(
             base_url = base_url,
@@ -37,10 +37,10 @@ class RequestSender:
             select_idx = random.choice(range(len(self.base_urls)))
             base_url = self.base_urls[select_idx]
             api_key = self.api_keys[select_idx]
-            # try:
-            return self.send_request_once_openai(prompt, base_url, api_key, sampling_params)
-            # except Exception as e:
-            #     pass
+            try:
+                return self.send_request_once_openai(prompt, base_url, api_key, sampling_params)
+            except Exception as e:
+                pass
         raise RuntimeError("Failed to get response from API.")
 
 

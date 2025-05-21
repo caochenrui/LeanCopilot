@@ -3,17 +3,23 @@ Lean Copilot: LLMs as Copilots for Theorem Proving in Lean (Forked Version)
 
 > **Note:** This repository is a fork of the original [Lean Copilot](https://github.com/lean-dojo/LeanCopilot).
 >
+> ---
+>
 > **Changes made in this fork:**
 >
 > * Added support for BFS-Prover
 > * Added support for calling models via API
 > * Temporarily disabled all other LLMs for lighter Python requirements
 >
+> ---
+>
 > **Usage:**
+>
+> **If you're using the DSP+ framework, you can skip the following steps and follow its instructions instead.**
 >
 > OpenAI-Compatible APIs are required. You can either host models locally using tools—such as **[vLLM](https://github.com/vllm-project/vllm)**, **[SGLang](https://github.com/sgl-project/sglang)**, or **[Ollama](https://github.com/ollama/ollama)**—or access them remotely via APIs. Refer to the corresponding tools’ documentation for further support. 
 >
-> For example, to run models locally using vLLM, please refer to the [vLLM OpenAI-Compatible Server documentation](https://docs.vllm.ai/en/latest/getting_started/quickstart.html#openai-compatible-server). Here's a quick command to launch `"bytedance-research/BFS-Prover"`:
+> For example, to run models locally using vLLM, please refer to the [vLLM OpenAI-Compatible Server documentation](https://docs.vllm.ai/en/latest/getting_started/quickstart.html#openai-compatible-server). Here's a quick command to launch `bytedance-research/BFS-Prover`:
 >
 > ```bash
 > pip install vllm
